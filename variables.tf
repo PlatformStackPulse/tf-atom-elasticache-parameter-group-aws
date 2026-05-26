@@ -1,7 +1,20 @@
-# -----------------------------------------------------------------------------
-# Module-Specific Variables
-#
-# Note: Standard labeling variables (enabled, namespace, tenant, environment,
-# stage, name, delimiter, attributes, tags, label_order, etc.) are provided
-# by context.tf via the tf-label module.
-# -----------------------------------------------------------------------------
+variable "family" {
+  description = "ElastiCache parameter group family (e.g., redis7)"
+  type        = string
+  default     = "redis7"
+}
+
+variable "parameters" {
+  description = "List of ElastiCache parameters"
+  type = list(object({
+    name  = string
+    value = string
+  }))
+  default = []
+}
+
+variable "description" {
+  description = "Description of the parameter group"
+  type        = string
+  default     = null
+}
