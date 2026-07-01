@@ -3,9 +3,37 @@
 [![CI](https://github.com/PlatformStackPulse/tf-atom-elasticache-parameter-group-aws/actions/workflows/ci.yml/badge.svg)](https://github.com/PlatformStackPulse/tf-atom-elasticache-parameter-group-aws/actions/workflows/ci.yml)
 ![Terraform](https://img.shields.io/badge/terraform-%3E%3D1.6.0-blueviolet)
 
-## Purpose
+Terraform atom that provisions an AWS ElastiCache parameter group for customizing Redis/Valkey engine configuration, with consistent tf-label naming and tagging.
 
-ElastiCache parameter group for customizing Redis/Valkey configuration.
+## Features
+
+- Creates an `aws_elasticache_parameter_group` with a tf-label-derived name (e.g. `eg-test-thing`).
+- Configurable engine `family` (e.g. `redis7`, `valkey8`).
+- Arbitrary list of `parameters` (name/value pairs) rendered as dynamic `parameter` blocks.
+- Optional custom `description` (defaults to a generated one referencing the module id).
+- Standard tf-label context inputs (`namespace`, `stage`, `name`, `tags`, ...) for consistent naming and tagging.
+- `enabled = false` toggle creates no resources (outputs return `null`).
+
+## Usage
+
+```hcl
+module "redis_parameter_group" {
+  source = "git::https://github.com/PlatformStackPulse/tf-atom-elasticache-parameter-group-aws.git?ref=v1.0.0"
+
+  namespace = "eg"
+  stage     = "prod"
+  name      = "cache"
+
+  family = "redis7"
+
+  parameters = [
+    {
+      name  = "maxmemory-policy"
+      value = "allkeys-lru"
+    },
+  ]
+}
+```
 
 ## Module Documentation
 
@@ -67,3 +95,21 @@ ElastiCache parameter group for customizing Redis/Valkey configuration.
 | <a name="output_id"></a> [id](#output\_id) | ID of the ElastiCache parameter group |
 | <a name="output_name"></a> [name](#output\_name) | Name of the ElastiCache parameter group |
 <!-- END_TF_DOCS -->
+
+## Tests
+
+Unit tests use a mocked AWS provider (`mock_provider "aws" {}`) and run entirely
+at plan time — no AWS credentials or real resources are required.
+
+```bash
+# Run unit tests
+terraform init -backend=false
+terraform test -test-directory=tests/unit
+
+# Or via the Makefile
+make test-unit
+```
+
+Assertions cover: resource creation when enabled, the tf-label-derived name
+(`eg-test-thing`), `family` pass-through, parameter count, and the
+`enabled = false` case (no resources, null outputs).
